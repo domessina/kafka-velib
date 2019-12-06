@@ -6,6 +6,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
@@ -21,13 +22,13 @@ public class Consumer {
 
     private final Logger LOGGER = LoggerFactory.getLogger(Consumer.class.getName());
     private final KafkaConsumer<String, Station> KAFKA_CONSUMER;
-    private final String BROKER_IP;
+    private final String BROKERS_IP;
     private final String GROUP_ID;
     private final String TOPIC;
     private Collection<City> cities = newArrayList();
 
-    public Consumer(String brokerIp, String topic, String groupId) {
-        this.BROKER_IP = brokerIp;
+    public Consumer(List<String> brokersIp, String topic, String groupId) {
+        this.BROKERS_IP = String.join(",", brokersIp);
         this.GROUP_ID = groupId;
         this.TOPIC = topic;
         Properties props = consumerProps();
@@ -49,7 +50,7 @@ public class Consumer {
                     processStationData(record.value());
                 }
 
-                KAFKA_CONSUMER.commitAsync();
+//                KAFKA_CONSUMER.commitAsync();
             }
         } catch (WakeupException e) {
             LOGGER.info("Received shutdown signal!");
@@ -62,8 +63,9 @@ public class Consumer {
 
     private Properties consumerProps() {
         Properties properties = new Properties();
-        properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKER_IP);
+        properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKERS_IP);
         properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, GROUP_ID);
+        properties.setProperty(ConsumerConfig.METADATA_MAX_AGE_CONFIG, "1");
         properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaJsonDeserializer.class.getName());
         //properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");

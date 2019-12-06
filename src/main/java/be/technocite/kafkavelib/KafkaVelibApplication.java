@@ -8,6 +8,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 import static org.hibernate.validator.internal.util.CollectionHelper.newArrayList;
@@ -15,7 +16,8 @@ import static org.hibernate.validator.internal.util.CollectionHelper.newArrayLis
 @SpringBootApplication
 public class KafkaVelibApplication implements CommandLineRunner {
 
-	private final String BROKER_IP = "localhost:9092";
+	private final String BROKER_IP_0 = "localhost:9092";
+	private final String BROKER_IP_1 = "localhost:9093";
 	private final String TOPIC = "velib-stations";
 	private final String GROUP_ID = "velib-group";
 	private Collection<Thread> childrenThreads = newArrayList();
@@ -27,22 +29,22 @@ public class KafkaVelibApplication implements CommandLineRunner {
 	}
 
 	public void run(String... args) throws InterruptedException {
-		addProducer(BROKER_IP, TOPIC);
-		addConsumer(BROKER_IP, TOPIC, GROUP_ID);
-		addConsumer(BROKER_IP, TOPIC, GROUP_ID);
+		addProducer(TOPIC);
+		addConsumer(TOPIC, GROUP_ID);
+		addConsumer(TOPIC, GROUP_ID);
 		for(Thread thread : childrenThreads) {
 			thread.start();
 		}
 	}
 
-	void addProducer(String brokerIp, String topic) throws InterruptedException {
-		Thread producerT = new Thread(() -> new Producer(brokerIp, topic, new VelibStationResource()).run());
+	void addProducer(String topic) throws InterruptedException {
+		Thread producerT = new Thread(() -> new Producer(Arrays.asList(BROKER_IP_0, BROKER_IP_1), topic, new VelibStationResource()).run());
 		childrenThreads.add(producerT);
 		producerT.join();
 	}
 
-	void addConsumer(String brokerIp, String topic, String group) throws InterruptedException {
-		Thread consumerT = new Thread(() -> new Consumer(brokerIp, topic, group).run());
+	void addConsumer(String topic, String group) throws InterruptedException {
+		Thread consumerT = new Thread(() -> new Consumer(Arrays.asList(BROKER_IP_0, BROKER_IP_1), topic, group).run());
 		childrenThreads.add(consumerT);
 		consumerT.join();
 	}

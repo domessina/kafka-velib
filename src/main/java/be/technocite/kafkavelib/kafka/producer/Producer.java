@@ -10,6 +10,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Properties;
 
 public class Producer {
@@ -20,8 +21,8 @@ public class Producer {
     private final String TOPIC;
     private VelibStationResource velibStationResource;
 
-    public Producer(String brokerIp, String topic, VelibStationResource velibStationResource) {
-        this.BROKER_IP = brokerIp;
+    public Producer(List<String> brokersIp, String topic, VelibStationResource velibStationResource) {
+        this.BROKER_IP = String.join(",", brokersIp);
         this.TOPIC = topic;
         this.velibStationResource = velibStationResource;
         Properties props = producerProps();
@@ -34,6 +35,7 @@ public class Producer {
         // ceci est un des serializer de kafka
         Properties props = new Properties();
         props.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKER_IP);
+        props.setProperty(ProducerConfig.METADATA_MAX_AGE_CONFIG, "1");
         props.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,  StringSerializer.class.getName());
         props.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaJsonSerializer.class.getName());
 
