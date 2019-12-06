@@ -1,3 +1,5 @@
 # kafka-velib
 
-:D
+## Prerequisites
+kafka with topic velib-stations
+zookeepere
