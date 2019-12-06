@@ -19,14 +19,17 @@ import static org.hibernate.validator.internal.util.CollectionHelper.newArrayLis
 
 public class Consumer {
 
-    private final KafkaConsumer<String, Station> KAFKA_CONSUMER;
     private final Logger LOGGER = LoggerFactory.getLogger(Consumer.class.getName());
-    private final String BROKER_SERVER_IP = "localhost:9092";
-    private final String GROUP_ID = "velib-group";
-    private final String TOPIC = "velib-stations";
+    private final KafkaConsumer<String, Station> KAFKA_CONSUMER;
+    private final String BROKER_IP;
+    private final String GROUP_ID;
+    private final String TOPIC;
     private Collection<City> cities = newArrayList();
 
-    public Consumer() {
+    public Consumer(String brokerIp, String topic, String groupId) {
+        this.BROKER_IP = brokerIp;
+        this.GROUP_ID = groupId;
+        this.TOPIC = topic;
         Properties props = consumerProps();
         KAFKA_CONSUMER = new KafkaConsumer<>(props);
         KAFKA_CONSUMER.subscribe(Collections.singletonList(TOPIC));
@@ -59,7 +62,7 @@ public class Consumer {
 
     private Properties consumerProps() {
         Properties properties = new Properties();
-        properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKER_SERVER_IP);
+        properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKER_IP);
         properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, GROUP_ID);
         properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaJsonDeserializer.class.getName());

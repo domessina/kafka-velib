@@ -16,11 +16,13 @@ public class Producer {
 
     private final KafkaProducer<String, Station> KAFKA_PRODUCER;
     private final Logger LOGGER = LoggerFactory.getLogger(Producer.class);
-    private final String BROKER_SERVER_IP = "localhost:9092";
-    private final String TOPIC = "velib-stations";
+    private final String BROKER_IP;
+    private final String TOPIC;
     private VelibStationResource velibStationResource;
 
-    public Producer(VelibStationResource velibStationResource) {
+    public Producer(String brokerIp, String topic, VelibStationResource velibStationResource) {
+        this.BROKER_IP = brokerIp;
+        this.TOPIC = topic;
         this.velibStationResource = velibStationResource;
         Properties props = producerProps();
         KAFKA_PRODUCER = new KafkaProducer<>(props);
@@ -31,7 +33,7 @@ public class Producer {
         // serialiszer une chaine de charactère pour la passer sur le réseau
         // ceci est un des serializer de kafka
         Properties props = new Properties();
-        props.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKER_SERVER_IP);
+        props.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKER_IP);
         props.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,  StringSerializer.class.getName());
         props.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaJsonSerializer.class.getName());
 
@@ -55,14 +57,16 @@ public class Producer {
     private void fetchRecords() {
         for(Station station : velibStationResource.getStationsData()) {
             // key = mot clef pour que kafka sétermine sur quelle partition écrire la value
-            put(TOPIC, "user2", station);
+            put(TOPIC, "useless", station);
         }
     }
 
     void put(String topic, String key, Station value) {
         //LOGGER.info("Put value: " + value + ", for key: " + key);
 
-        ProducerRecord<String, Station> record = new ProducerRecord<>(topic, key, value);
+        // on peut passer une clef pour influencer la partition choisie, utile généralement que si on fait du log compaction
+        //ProducerRecord<String, Station> record = new ProducerRecord<>(topic, key, value);
+        ProducerRecord<String, Station> record = new ProducerRecord<>(topic, value);
         KAFKA_PRODUCER.send(record, (recordMetadata, e) -> {
             if (e != null) {
                 LOGGER.error("Error while producing", e);
