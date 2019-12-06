@@ -57,7 +57,7 @@ public class Producer {
     private void fetchRecords() {
         for(Station station : velibStationResource.getStationsData()) {
             // key = mot clef pour que kafka sétermine sur quelle partition écrire la value
-            put(TOPIC, "useless", station);
+            put(TOPIC, station.getNumber().toString(), station);
         }
     }
 
@@ -65,8 +65,8 @@ public class Producer {
         //LOGGER.info("Put value: " + value + ", for key: " + key);
 
         // on peut passer une clef pour influencer la partition choisie, utile généralement que si on fait du log compaction
-        //ProducerRecord<String, Station> record = new ProducerRecord<>(topic, key, value);
-        ProducerRecord<String, Station> record = new ProducerRecord<>(topic, value);
+        ProducerRecord<String, Station> record = new ProducerRecord<>(topic, key, value);
+        //ProducerRecord<String, Station> record = new ProducerRecord<>(topic, value);
         KAFKA_PRODUCER.send(record, (recordMetadata, e) -> {
             if (e != null) {
                 LOGGER.error("Error while producing", e);
